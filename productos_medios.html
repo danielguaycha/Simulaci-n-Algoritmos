@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+	 <meta charset="utf-8">
+	<title>Productos Medios</title>
+	 <link rel="stylesheet" href="bootstrap.min.css">
+</head>
+<body>
+	 <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+	  <h5 class="my-0 mr-md-auto font-weight-normal">Simulación</h5>
+	  <nav class="my-2 my-md-0 mr-md-3">
+	    <a class="p-2 text-dark" href="cuadrados_medios.html">Cuadrados Medios</a>
+	    <a class="p-2 text-dark" href="lineal_mixto.html">Lineal o Mixto</a>
+	    <a class="p-2 text-dark" href="multiplicativo.html">Multiplicativo</a>
+	    <a class="p-2 text-dark" href="aditivo.html">Aditivo</a>
+	  </nav>
+	</div>
+	<div class="container">
+	  <h5>Método Productos Medios</h5>
+	  <hr>
+	  	<form id="calculate">
+	        <div class="row">
+	          <div class="col-md-4">
+	            <label class="form-control-label">Primera Semilla (x0): </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="semilla" placeholder="Ingrese semilla" minlength="4">
+	          </div>
+	          <div class="col-md-4">
+	            <label class="form-control-label">Segunda Semilla (x0): </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="semilla2" placeholder="Ingrese semilla" minlength="4">
+	          </div>
+	          <div class="col-md-4">
+	            <label for="">Limite: </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="num" placeholder="Ingrese la cantidad" value="100">
+	          </div>
+	      </div>
+	      <hr>
+	      <div class="msg"></div>
+	      <button type="submit" class="btn btn-primary">Calcular</button>
+		</form>
+
+		<hr>
+	      <table class="table table-bordered" >
+	        <thead>
+	          <th>#</th>
+	          <th>X0</th>
+	          <th>Xi</th>
+	          <th>auxXi</th>
+	          <th>aux</th>
+	          <th>Ri</th>
+	        </thead>
+	        <tbody id="tb">
+			</tbody>
+	      </table>
+	</div>
+	<script type="text/javascript" src="js/jq.js"></script>
+    <script type="text/javascript" src="js/pop.js"></script>
+    <script type="text/javascript" src="js/bs.js"></script>
+
+    <script>
+    	$('#calculate').submit(function(e){
+    		e.preventDefault();
+    		let s1 = $('#semilla').val();
+    		let s2 = $('#semilla2').val();
+    		if(s1<=999 || s2 <=999){
+    			alert("La semilla debe ser mayor a 4 digitos")
+    			return;
+    		}
+
+    		if(s1%2!=0 || s2%2!=0){
+    			alert('Las semillas deben ser par');
+    			return;
+    		}
+    		let n = $('#num').val();
+    		calcular(s1,s2,n);
+    	});
+
+    	function calcular(semilla, semilla2,num){
+    		let x0 = semilla;
+    		let xi = semilla2;
+    		let auxXi= 0;
+    		let aux = "";
+    		let ri = 0;
+    		let leng = 0;
+
+    		let template ='<tr> <td>{#}</td> <td>{x0}</td> <td>{xi}</td> <td>{auxxi}</td> <td>{aux}</td> <td>{ri}</td> </tr>';
+    		let row ='';
+    		let values = [];
+
+    		for(let i = 1; i<=num; i++ ){
+    			auxXi = x0*xi;
+    			leng = (auxXi+"").length;
+
+    			switch(leng){
+					case 8: aux = (auxXi+"").substring(2,6); break; 
+					case 7: aux = (auxXi+"").substring(1,5); break; 
+					case 6: aux = (auxXi+"").substring(1,5); break; 
+					case 5: aux = (auxXi+"").substring(0,4); break;
+					case 4: aux = auxXi+""; break;
+				}
+
+				ri = "0."+aux;
+				row += template.replace('{#}', i)
+								.replace('{x0}', x0)
+								.replace('{xi}', xi)
+								.replace('{auxxi}', auxXi)
+								.replace('{aux}', aux)
+								.replace('{ri}', ri);
+				//console.log(auxXi+' | '+ aux+' | '+ri);
+
+				if(!arrayHas(values, parseInt(aux))){
+	              values[i]=parseInt(aux);
+	            }else{
+	              $('.msg').html('<div class="alert alert-warning">Solo se ha generado '+(values.length-1)+' números con estos valores.</div>');
+	              break;
+	            }
+	            x0 = xi;
+				xi = parseInt(aux);
+    		}
+    		$('#tb').html(row)
+    	}
+
+    	function arrayHas(array, number){
+    			for(let i = 0; i< array.length; i++){
+    				if(array[i] === number){
+    					return true;
+    				}
+    			}
+  			  return false;
+  		}
+    </script>
+</body>
+</html>

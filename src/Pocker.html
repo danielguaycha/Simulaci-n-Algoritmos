@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Prueba de Pocker | Por: Guaycha-Cueva </title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+</head>
+<body>
+	<nav class="navbar navbar-light bg-light">
+	  <a class="navbar-brand" href="#">
+	    Prueba de Pocker
+	  </a>
+	  <a href="../index.html" class="p-2 text-dark" href="aditivo.html">Inicio</a>
+	</nav>
+    <div class="container">
+      <br><br>
+      <form id="calculate">
+	        <div class="row">
+	          <div class="col-md-4">
+	            <label class="form-control-label">Ingrese la cantidad (N) : </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="number" placeholder="Ingrese N" minlength="3" value="5">
+	          </div>
+	          <div class="col-md-4">
+	            <label for="">Nivel de Confiaza %: </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="confianza" placeholder="%" value="95">
+	          </div>
+			 <div class="col-md-4">
+	            <label for="">Alfa </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="alfa" placeholder="%" value="" disabled="">
+	          </div>
+	          <br>	       
+	      </div>
+	      <hr>
+	      <div class="msg"></div>
+	      <button type="submit" class="btn btn-primary">Generar</button>
+		</form>
+		<hr>
+		<div class="row">
+			<div class="col-md-2">
+				<table class="">
+					<thead>
+						<tr>
+							<th>Aleatorios</th>
+						</tr>
+					</thead>
+					<tbody id="aleat">
+						
+					</tbody>
+				</table>
+			</div>
+			<div class="col-md-10">
+				<div class="content-vals" style="text-align: center;padding: 20px;border: 1px solid #ccc;">
+					<button class="btn btn-danger" id="exe">Ejecutar Prueba de Pocker</button>
+					<br><br>
+					<div class="content">
+				<table class="table table-bordered">
+					<thead>
+						<tr>
+							<th>Categorias</th>
+							<th>Oi</th>
+							<th>Ei</th>
+							<th>(Ei-Oi)^2/Ei</th>
+						</tr>
+					</thead>
+						<tbody id="tb">
+							
+						</tbody> 
+					</table>
+					<img src="https://i.imgur.com/h62zkdc.png" width="70px"> <span><b id="prueba"></b></span>
+					</div>	
+				</div>
+				<div class="compare" style="background: #ddd; font-weight:bold; text-align: center;padding: 10px;border: 1px solid #ccc;">
+					
+				</div>
+				<div class="result" style="text-align: center"></div>
+			</div>
+		</div>
+		
+  	</div>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>	
+	<script type="text/javascript" src="https://www.di-mgt.com.au/gammafns.js"></script>
+	<script>
+		
+		var sumaTotalOi = 0;
+		var oi = [];
+		var m = 0;
+		var alfa;
+		$(document).ready(function(){
+		    $('#calculate').submit(function(e){
+				e.preventDefault();
+				let n = $('#number').val();
+				let c = $('#confianza').val();
+				calcular(n,c);
+			})
+		})
+		$('#exe').click(function(){
+			oi = [];
+			let td=0, unp=0, dosp=0, t=0, p=0;
+			if($('#aleat').find('select').length == 0){
+				alert('Genere primero los numeros aleatorios');
+				return;
+			}
+			$('#aleat').find('select').each(function(i){
+				switch(($(this).val())) {
+					case 'TD':
+						td+=1;
+						break;
+					case '1P':
+						unp+=1;
+						break;
+					case '2P':
+						dosp+=1;
+						break;
+					case 'T':
+						t+=1;
+						break;
+					case 'P':
+						p+=1;
+						break;
+				}
+			});
+			oi[0]=td;
+			oi[1]=unp;
+			oi[2]=dosp;
+			oi[3]=t;
+			oi[4]=p;
+			console.log(oi);
+			setView()
+		});
+		function setView(){
+			let plantilla = '<tr><td>{cat}</td><td>{oi}</td><td>{ei}</td><td>{xo}</td></tr>';
+			let row = '';
+			let cat = ['TD', '1P', '2P', 'T', 'P'];
+			let probabilidad = [0.5040, 0.4320, 0.0270, 0.0360, 0.0010];
+			let ei = [];
+			let xo = [];
+			let n = oi.length;
+			let totXo = 0;
+			for (let i = 0; i < n; i++) {
+				ei[i] = probabilidad[i]*n;
+				xo[i] = Math.pow((ei[i]-oi[i]), 2)/ei[i];
+				row +=plantilla.replace('{cat}', cat[0])
+						.replace('{oi}', oi[i]).replace('{ei}', ei[i])
+						.replace('{xo}', autoOk(xo[i], 4));
+				totXo += xo[i];
+			}
+			
+			$('#tb').html(row);
+
+			let chiinv = chi2inv(alfa, m-1);
+			let mensaje = '';
+			$('#prueba').html(autoOk(chiinv,2));
+			 $('.compare').html(autoOk(totXo,2)+ ' < '+autoOk(chiinv,2))
+			 if(totXo<chiinv){
+			 	$('.compare').html(autoOk(totXo,2)+ ' < '+autoOk(chiinv,2))
+			 	mensaje ="<div class='alert alert-success'>No se puede rechazar la independencia de los numeros aleatorios generados.</div>";
+			 }else{
+			 	$('.compare').html(autoOk(totXo,2)+ ' > '+autoOk(chiinv,2))
+			 	mensaje ="<div class='alert alert-warning'>La independencia de conjunto de numeros generados se rechaza</div>";
+			 }
+			 $('.result').html(mensaje);
+		}
+		function calcular(n, c){
+			m = 0;
+			$('#aleat').html('')
+			let aleatorios = llenar(n);
+			alfa = (100 - c)/100;		
+			m = parseInt(Math.sqrt(aleatorios.length));	
+			$('#alfa').val(alfa);					
+			 for(let i=0; i<aleatorios.length; i++){
+				$('#aleat').append(
+					'<tr><td>'+autoOk(aleatorios[i], 4)+'</td><td><select id="" class="form-control"><option value=""></option>*<option value="TD">TD</option> <option value="1P">1P</option> <option value="2P">2P</option> <option value="T">T</option> <option value="P">P</option> </select><td/></tr>');
+			}
+		}
+		function max(array){
+			let mayor = 0;
+			for(i = 0; i < array.length; i++){
+			    if (array[i] > mayor)
+			    {
+			        mayor = array[i];
+			    };
+			}
+			return mayor;
+		}
+		function calcularR(aleatorios){
+			let n = aleatorios.length;
+			let sum = 0;
+			for(let i=0; i<aleatorios.length ; i++){
+				sum += aleatorios[i];
+			}
+			return (1/n*(sum));
+		}
+
+		function llenar(n){
+			let tempArray = [];	
+			for (let i = 0; i <n; i++) {
+				tempArray[i] = aleatorio(0,1);
+			}
+			return tempArray;
+		}
+		function aleatorio(min, max) {
+		  let num =  Math.random() * (max - min) + min;
+		  return (num);
+		}
+		function autoOk(number, decimals){
+			if(number == parseInt(number)){
+				return number+"";
+			}
+
+	        let concat ="";
+	        let n = ((""+number).length)-2;
+
+	        if(n>decimals){
+	          return (""+number).substring(0, decimals+2);
+	        }
+
+	        for(let i = 0; i<(decimals - n); i++){
+	          concat= ""+concat+"0"
+	        }
+	        //return n+"-"+concat+"-"+number;
+	        return number+""+concat;
+      	}
+	</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Algoritmo Congruencial Multiplicativo</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+  </head>
+  <body>
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+      <h5 class="my-0 mr-md-auto font-weight-normal">Simulación</h5>
+      <nav class="my-2 my-md-0 mr-md-3">
+        <a class="p-2 text-dark" href="cuadrados_medios.html">Cuadrados Medios</a>
+        <a class="p-2 text-dark" href="productos_medios.html">Productos Medios</a>
+        <a class="p-2 text-dark" href="lineal_mixto.html">Lineal Mixto</a>
+        <a class="p-2 text-dark" href="aditivo.html">Aditivo</a>
+      </nav>
+    </div>
+    <div class="container">
+      <h5>Método Congruencial Multiplicativo</h5>
+      <hr>
+      <form id="calculate">
+        <div class="row">
+          <div class="col-md-6">
+            <label class="form-control-label">Semilla: </label>
+            <input type="number"
+                  required
+                  class="form-control" id="semilla" placeholder="Ingrese semilla">
+          </div>
+          <div class="col-md-6">
+            <label class="form-control-label">Valor k: </label>
+              <input type="number"
+                    required
+                    class="form-control" id="k" placeholder="Ingrese valor (k)">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <label class="form-control-label">Valor g: </label>
+              <input type="number"
+                    required
+                    class="form-control" id="g" placeholder="Ingrese valor (g)">
+          </div>
+          <div class="col-md-4">
+            <label for="">Variante</label>
+            <select class="form-control" id="variante">
+                <option value="0">3+8k</option>
+                <option value="1">5+8k</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="">Cantidad de números</label>
+            <input type="number"
+                  required
+                  class="form-control" id="numbers" placeholder="Ingrese la cantidad" value="100">
+          </div>
+        </div>
+        <hr>
+        <div class="form-group text-center">
+            <div class="msg">
+
+            </div>
+            <button type="submit" class="btn btn-primary">Calcular</button>
+        </div>
+      </form>
+      <hr>
+      <table class="table table-bordered">
+        <thead>
+          <th>#</th>
+          <th>Xi</th>
+          <th>Aux Xi</th>
+          <th>Ri</th>
+          <th>Aux Ri</th>
+        </thead>
+        <tbody id="tb_alg">
+
+        </tbody>
+      </table>
+    </div>
+    <script type="text/javascript" src="js/jq.js"></script>
+    <script type="text/javascript" src="js/pop.js"></script>
+    <script type="text/javascript" src="js/bs.js"></script>
+    <script>
+
+      let template = '<tr><td>{#}</td><td>{xi}</td><td>{auxxi}</td><td>{ri}</td><td>{auxri}</td></tr>';
+      let msg ="<div class='alert alert-info'>{msg}</div>";
+      $(document).ready(function(){
+        $('#calculate').submit(function(e){
+          e.preventDefault();
+          //$('#tb-alg').html('')
+          let xi = $('#semilla').val();
+          let k= $('#k').val();
+          let g= $('#g').val();
+          let variante = $('#variante').val();
+          let numbers = $('#numbers').val();
+
+          if(validate(xi, k, g)){
+            calcular(xi, k, g, variante, numbers);
+          }
+        })
+      });
+      function calcular(xi, k, g, variante, numbers){
+        let values = [];
+        let m=Math.pow(2, g);
+        let a = 0;
+        if(variante == 0){
+          a = (3+8*k);
+        }else{
+          a = (5+8*k);
+        }
+        let num = numbers;
+        let ri = 0;
+        let auxxi = 0;
+        let addRows='';
+        let decimalsNumber =  4;
+        for(let i = 1; i<=num; i++){
+            auxxi =((a*xi) % m);//a * xi mod m
+            ri = (auxxi/(m-1)); //ri = xi/m-1
+            //console.log(i+">> "+auxxi+" -> "+ri);
+            addRows+=template.replace('{#}', i)
+                              .replace('{xi}', a+"("+xi+") mod "+m)
+                              .replace('{auxxi}', auxxi)
+                              .replace('{ri}', auxxi+"/("+(m-1)+")")
+                              .replace('{auxri}', autoOk(ri, decimalsNumber));
+            if(!arrayHas(values, auxxi)){
+              values[i]=auxxi;
+            }else{
+              $('.msg').html(msg.replace('{msg}', 'Solo se ha generado '+(values.length-1)+' números con estos valores.'));
+              break;
+            }
+            //console.log(addRows)
+            xi = auxxi;
+        }
+        $('#tb_alg').html(addRows);
+        console.log(values);
+      }
+
+    function validate(xi, k, g){
+      if(xi%2==0){
+        alert('La semilla debe ser impar');
+        return false;
+      }
+      if(g<=0){
+        alert('El valor (g) debe ser entero mayor a 0')
+        return false;
+      }
+      return true;
+    }
+    function autoOk(number, decimals){
+      let concat ="";
+      let n = ((""+number).length)-2;
+
+      if(n>decimals){
+        return (""+number).substring(0, decimals+2);
+      }
+
+      for(let i = 0; i<(decimals - n); i++){
+        concat= ""+concat+"0"
+      }
+      //return n+"-"+concat+"-"+number;
+      return number+""+concat;
+    }
+    function arrayHas(array, number){
+  			for(let i = 0; i< array.length; i++){
+  				if(array[i] === number){
+  					return true;
+  				}
+  			}
+			  return false;
+		}
+    </script>
+  </body>
+
+</html>

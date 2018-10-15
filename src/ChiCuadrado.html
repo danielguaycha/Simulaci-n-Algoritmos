@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Prueba de Chi-Cuadrado | Por: Guaycha-Cueva </title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+</head>
+<body>
+	<nav class="navbar navbar-light bg-light">
+	  <a class="navbar-brand" href="#">
+	    Prueba de Chi-Cuadrado
+	  </a>
+	   <a href="../index.html" class="p-2 text-dark" href="aditivo.html">Inicio</a>
+	</nav>
+    <div class="container">
+      <br><br>
+      <form id="calculate">
+	        <div class="row">
+	          <div class="col-md-6">
+	            <label class="form-control-label">Ingrese la cantidad (N) : </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="number" placeholder="Ingrese N" minlength="3" value="100">
+	          </div>
+	          <div class="col-md-6">
+	            <label for="">Nivel de Confiaza %: </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="confianza" placeholder="%" value="95">
+	          </div><br><br>
+				
+				<div class="col-md-6">
+		            <label class="form-control-label">Número de intervalos | M = sqrt(N): </label>
+		            <input type="number"
+		                  class="form-control" id="m" placeholder="Valor M" disabled="">
+	          	</div>
+
+	          	<div class="col-md-6">
+		            <label class="form-control-label">Alfa (100-%)/100 : </label>
+		            <input type="number"
+		                  class="form-control" id="alfa" placeholder="Valor Alfa" disabled="">
+	          	</div>
+	       
+	      </div>
+	      <hr>
+	      <div class="msg"></div>
+	      <button type="submit" class="btn btn-primary">Calcular</button>
+		</form>
+		<hr>
+		<div class="row">
+			<div class="col-md-2">
+				<table class="">
+					<thead>
+						<tr>
+							<th>Aleatorios</th>
+						</tr>
+					</thead>
+					<tbody id="aleat">
+						
+					</tbody>
+				</table>
+			</div>
+			<div class="col-md-10">
+				<table class="table table-bordered">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Intervalos</th>
+							<th>Oi</th>
+							<th>Ei (n/m)</th>
+							<th>Xo^2 = Sum (Ei-Oi)^2/Ei</th>
+						</tr>
+					</thead>
+					<tbody id="tb">
+						
+					</tbody> 
+					<tfoot id="tot">
+						
+					</tfoot>
+				</table>		
+				<div style="text-align: center;padding: 20px;border: 1px solid #ccc;">
+					<img src="https://i.imgur.com/h62zkdc.png" width="70px"> <span><b id="prueba"></b></span>
+				</div>
+				<div class="compare" style="background: #ddd; font-weight:bold; text-align: center;padding: 10px;border: 1px solid #ccc;">
+					
+				</div>
+				<div class="result"></div>
+			</div>
+		</div>
+		
+  	</div>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="https://www.di-mgt.com.au/gammafns.js"></script>
+	<script>
+		
+		var sumaTotalOi = 0;
+		$(document).ready(function(){
+		    $('#calculate').submit(function(e){
+				e.preventDefault();
+				let n = $('#number').val();
+				let c = $('#confianza').val();
+				calcular(n,c);
+			})
+		})
+
+		function calcular(n, c){
+			let aleatorios = llenar(n);
+			let m = parseInt(Math.sqrt(aleatorios.length));
+			let alfa = (100 - c)/100;
+			let ei = n/m;
+			let intervalos = subintervalos(m);
+			let oi = calcOi(aleatorios, intervalos);
+			$('#alfa').val(alfa);
+			$('#m').val(m);
+			
+			showData(m, aleatorios, intervalos, ei, oi, alfa)
+			
+		}
+
+		function showData(m,aleatorios, intervalos, ei, oi, alfa){
+			let plantilla = '<tr><td>{#}</td><td>{intervalos}</td><td>{oi}</td><td>{ei}</td><td>{xo}</td></tr>';
+			let foot = '<tr> <th>*</th> <th>Totales</th> <th>{oi}</th> <th>{ei}</th> <th style="background: #ddd">{xo}</th> </tr>';
+			let row = '';
+			let xo = [];
+			let totEi = 0;
+			let totXo = 0;
+			$('#aleat').html('');
+			for(let i=0; i<aleatorios.length; i++){
+				$('#aleat').append(
+					'<tr><td>'+autoOk(aleatorios[i], 2)+'</td>');
+			}
+
+			for(let i = 0; i<m; i++){
+				xo[i] = Math.pow((ei-oi[i]), 2)/ei;
+				row = row+plantilla.replace('{#}', i+1)
+								.replace('{intervalos}', "[ "+intervalos[i][0]+"  -  "+intervalos[i][1]+" ]")
+								.replace('{oi}', oi[i])
+								.replace('{ei}', autoOk(ei, 4))
+								.replace('{xo}', autoOk(xo[i], 4));
+				totEi +=ei;
+				totXo += xo[i];
+			}
+			let rowFoot = foot.replace('{oi}', sumaTotalOi).replace('{ei}', autoOk(totEi, 4)).replace('{xo}', 'Xo^2 = '+autoOk(totXo,2));
+
+			$('#tb').html(row);
+			$('#tot').html(rowFoot);
+
+			let chiinv = chi2inv(alfa, m-1);
+			let mensaje = '';
+			$('#prueba').html(autoOk(chiinv,2));
+			 $('.compare').html(autoOk(totXo,2)+ ' < '+autoOk(chiinv,2))
+			 if(totXo<chiinv){
+			 	$('.compare').html(autoOk(totXo,2)+ ' < '+autoOk(chiinv,2))
+			 	mensaje ="<div class='alert alert-success'>Dado que <img src='https://i.imgur.com/QeErNRj.png' width='90px'> entonces se puede decir que no se puede rechazar el conjunto de números aleatorios porque <b>cumple con la propiedad de uniformidad.</b></div>";
+			 }else{
+			 	$('.compare').html(autoOk(totXo,2)+ ' > '+autoOk(chiinv,2))
+			 	mensaje ="<div class='alert alert-warning'>Dado que <img src='https://i.imgur.com/QeErNRj.png' width='90px'> <b>No se cumple</b>. Se puede rechazar el conjunto de números aleatorios mismo que no es uniforme.</div>";
+			 }
+
+			 $('.result').html(mensaje);
+		}
+
+		function calcOi(aleatorios, intervalos){
+			let sum = 0;
+			let count = 0;
+			let oi = [];
+			for(let i =0; i<intervalos.length; i++){
+				for(let j =0 ; j<=aleatorios.length; j++){
+					if(aleatorios[j]>=intervalos[i][0] && aleatorios[j]<=intervalos[i][1]){
+						count++;
+					}
+				}
+				oi.push(count);
+				sum = sum + count;
+				count = 0;
+			}
+			sumaTotalOi = sum;
+			return oi;
+		}
+		function subintervalos(m){
+			let subint = [];
+			let contentSub = [];
+			subint[0]=0;
+			for (var i = 1; i <= m; i++) {
+				subint[i] = round(i/m, 2);
+			}
+			let cont = 0;
+			for(let j = 0; j<subint.length-1; j++){
+				let temp=[];
+				temp[cont] = subint[j];
+				temp[cont+1]=subint[j+1]
+				cont = 0;
+				contentSub.push(temp);
+			}
+			return(contentSub);
+		}
+		function round(value, decimals) {
+		  	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+		}
+		function llenar(n){
+			let tempArray = [];	
+			for (let i = 0; i <n; i++) {
+				tempArray[i] = aleatorio(0,1);
+			}
+			return tempArray;
+		}
+		function aleatorio(min, max) {
+		  let num =  Math.random() * (max - min) + min;
+		  return (num);
+		}
+		function autoOk(number, decimals){
+			if(number == parseInt(number)){
+				return number+"";
+			}
+
+	        let concat ="";
+	        let n = ((""+number).length)-2;
+
+	        if(n>decimals){
+	          return (""+number).substring(0, decimals+2);
+	        }
+
+	        for(let i = 0; i<(decimals - n); i++){
+	          concat= ""+concat+"0"
+	        }
+	        //return n+"-"+concat+"-"+number;
+	        return number+""+concat;
+      	}
+	</script>
+</body>
+</html>

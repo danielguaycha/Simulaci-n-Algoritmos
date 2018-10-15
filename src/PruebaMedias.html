@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Prueba de Medias | Por: Guaycha-Cueva </title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+</head>
+<body>
+	<nav class="navbar navbar-light bg-light">
+	  <a class="navbar-brand" href="#">
+	    Prueba de Medias
+	  </a>
+	  <a href="../index.html" class="p-2 text-dark" href="aditivo.html">Inicio</a>
+	</nav>
+    <div class="container">
+      <br><br>
+      <form id="calculate">
+	        <div class="row">
+	          <div class="col-md-4">
+	            <label class="form-control-label">Ingrese la cantidad (N) : </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="number" placeholder="Ingrese N" minlength="3" value="100">
+	          </div>
+	          <div class="col-md-4">
+	            <label for="">Nivel de Confiaza %: </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="confianza" placeholder="%" value="95">
+	          </div>
+			 <div class="col-md-4">
+	            <label for="">Alfa </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="alfa" placeholder="%" value="" disabled="">
+	          </div>
+
+	          <div class="col-md-4">
+	            <label for="">limite Inferior </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="li" placeholder="" value="" disabled="">
+	          </div>
+
+	         <div class="col-md-4">
+	            <label for="">limite Superior </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="ls" placeholder="" value="" disabled="">
+	          </div>
+
+	          <div class="col-md-4">
+	            <label for="">Valor r </label>
+	            <input type="number"
+	                  required
+	                  class="form-control" id="r" placeholder="" value="" disabled="">
+	          </div>
+	          <br>	       
+	      </div>
+	      <hr>
+	      <div class="msg"></div>
+	      <button type="submit" class="btn btn-primary">Calcular</button>
+		</form>
+		<hr>
+		<div class="row">
+			<div class="col-md-2">
+				<table class="">
+					<thead>
+						<tr>
+							<th>Aleatorios</th>
+						</tr>
+					</thead>
+					<tbody id="aleat">
+						
+					</tbody>
+				</table>
+			</div>
+			<div class="col-md-10">
+				<div style="text-align: center;padding: 20px;border: 1px solid #ccc;">
+					
+				</div>
+				<div class="compare" style="background: #ddd; font-weight:bold; text-align: center;padding: 10px;border: 1px solid #ccc;">
+					
+				</div>
+				<div class="result"></div>
+			</div>
+		</div>
+		
+  	</div>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="https://www.di-mgt.com.au/gammafns.js"></script>
+	<script>
+		
+		var sumaTotalOi = 0;
+		$(document).ready(function(){
+		    $('#calculate').submit(function(e){
+				e.preventDefault();
+				let n = $('#number').val();
+				let c = $('#confianza').val();
+				calcular(n,c);
+			})
+		})
+
+		function calcular(n, c){
+			let aleatorios = llenar(n);
+			let alfa = (100 - c)/100;			
+			$('#alfa').val(alfa);					
+			let li = ((1/2)-(2-alfa)*(1/Math.sqrt(12*n)));
+			let ls = ((1/2)+(2-alfa)*(1/Math.sqrt(12*n)));
+			let r = calcularR(aleatorios);
+			$('#li').val(li);
+			$('#ls').val(ls);
+			$('#r').val(r);
+			if(r>=li && r<=ls){
+				mensaje ="<div class='alert alert-success'>Como el valor r="+r+" se encuentra entre los limites de aceptación se concluye que no se puede rechazar el conjunto de "+n+" números.</div>";
+			}else{
+			 	mensaje ="<div class='alert alert-warning'>Como el valor r="+r+" <b> No</b> se encuentra entre los limites de aceptación se concluye que se puede rechazar el conjunto de "+n+" números.</div>";
+			 }
+			 $('.result').html(mensaje);
+
+			 for(let i=0; i<aleatorios.length; i++){
+				$('#aleat').append(
+					'<tr><td>'+autoOk(aleatorios[i], 2)+'</td>');
+			}
+		}
+
+		function calcularR(aleatorios){
+			let n = aleatorios.length;
+			let sum = 0;
+			for(let i=0; i<aleatorios.length ; i++){
+				sum += aleatorios[i];
+			}
+			return (1/n*(sum));
+		}
+
+		function llenar(n){
+			let tempArray = [];	
+			for (let i = 0; i <n; i++) {
+				tempArray[i] = aleatorio(0,1);
+			}
+			return tempArray;
+		}
+		function aleatorio(min, max) {
+		  let num =  Math.random() * (max - min) + min;
+		  return (num);
+		}
+		function autoOk(number, decimals){
+			if(number == parseInt(number)){
+				return number+"";
+			}
+
+	        let concat ="";
+	        let n = ((""+number).length)-2;
+
+	        if(n>decimals){
+	          return (""+number).substring(0, decimals+2);
+	        }
+
+	        for(let i = 0; i<(decimals - n); i++){
+	          concat= ""+concat+"0"
+	        }
+	        //return n+"-"+concat+"-"+number;
+	        return number+""+concat;
+      	}
+	</script>
+</body>
+</html>
